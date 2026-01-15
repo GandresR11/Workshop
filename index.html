@@ -3,95 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strategy Match App</title>
+    <title>Strategy Match Live</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .progress-bar { transition: width 0.5s ease-in-out; }
+        .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: bold; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div id="app" class="p-4 max-w-md mx-auto">
+<body class="bg-slate-50 font-sans">
+    <div id="app" class="max-w-xl mx-auto min-h-screen shadow-2xl bg-white">
         
-        <header class="mb-6 text-center">
-            <h1 class="text-2xl font-bold text-blue-800">Workshop Estrategia</h1>
-            <p class="text-gray-600">Califica tu sesión de co-construcción</p>
-        </header>
+        <nav class="flex border-b sticky top-0 bg-white z-10">
+            <button @click="view = 'votar'" :class="view === 'votar' ? 'tab-active' : ''" class="flex-1 py-4 text-center text-gray-500">🗳️ Votar</button>
+            <button @click="view = 'resultados'" :class="view === 'resultados' ? 'tab-active' : ''" class="flex-1 py-4 text-center text-gray-500">📊 Resultados</button>
+        </nav>
 
-        <div v-if="!categoriaSeleccionada" class="bg-white p-6 rounded-xl shadow-lg">
-            <h2 class="font-bold mb-4 text-lg">¿Cuál es tu categoría?</h2>
-            <div class="grid grid-cols-2 gap-3">
-                <button v-for="cat in categorias" @click="categoriaSeleccionada = cat" 
-                    class="p-3 bg-blue-50 hover:bg-blue-200 border border-blue-200 rounded-lg text-sm transition">
-                    {{ cat }}
-                </button>
-            </div>
-        </div>
+        <main v-if="view === 'votar'" class="p-6">
+            <header class="mb-6 text-center">
+                <h1 class="text-2xl font-black text-blue-900 uppercase">Strategy Match</h1>
+                <p class="text-gray-500">Co-construcción de Categorías & Canales</p>
+            </header>
 
-        <div v-if="categoriaSeleccionada && !canalActivo" class="animate-fade-in">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold">Hola, Jefe de {{ categoriaSeleccionada }}</h3>
-                <button @click="categoriaSeleccionada = null" class="text-xs text-red-500 underline">Cambiar</button>
-            </div>
-            <p class="mb-4 text-sm text-gray-500">Selecciona el canal que acabas de visitar:</p>
-            <div class="grid grid-cols-1 gap-3">
-                <button v-for="canal in canales" @click="canalActivo = canal" 
-                    :class="yaCalificado(canal) ? 'bg-green-100 border-green-500' : 'bg-white border-gray-200'"
-                    class="p-4 rounded-xl border-2 flex justify-between items-center shadow-sm">
-                    <span class="font-semibold">{{ canal }}</span>
-                    <span v-if="yaCalificado(canal)" class="text-green-600">✅</span>
-                    <span v-else class="text-blue-500 font-bold">→</span>
-                </button>
-            </div>
-        </div>
-
-        <div v-if="canalActivo" class="bg-white p-6 rounded-xl shadow-xl border-t-4 border-blue-600">
-            <h2 class="text-xl font-bold mb-1">Calificando: {{ canalActivo }}</h2>
-            <p class="text-sm text-gray-500 mb-6 text-blue-600 font-medium italic">Evaluación 360°</p>
-            
-            <div v-for="(aspecto, index) in aspectos" :key="index" class="mb-6">
-                <label class="block text-sm font-bold mb-2">{{ aspecto }}:</label>
-                <input type="range" min="1" max="5" v-model="ratings[index]" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                <div class="flex justify-between text-xs px-1 mt-1 font-bold text-gray-400">
-                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+            <div v-if="!categoriaSeleccionada" class="animate-in fade-in duration-500">
+                <h2 class="font-bold mb-4 text-gray-700">1. Selecciona tu Categoría:</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button v-for="cat in categorias" @click="categoriaSeleccionada = cat" 
+                        class="p-3 bg-white border border-gray-200 rounded-lg text-sm hover:bg-blue-50 hover:border-blue-400 transition">
+                        {{ cat }}
+                    </button>
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <button @click="canalActivo = null" class="flex-1 py-3 bg-gray-100 rounded-lg font-bold">Atrás</button>
-                <button @click="guardarCalificacion" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg">Enviar</button>
+            <div v-else-if="!canalActivo">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-blue-800 italic">Jefe de {{ categoriaSeleccionada }}</h2>
+                    <button @click="categoriaSeleccionada = null" class="text-xs text-red-400 underline italic">Cambiar</button>
+                </div>
+                <h3 class="mb-4 text-gray-700 font-medium">2. Selecciona el Canal visitado:</h3>
+                <div class="space-y-2">
+                    <button v-for="canal in canales" @click="canalActivo = canal" 
+                        :class="yaCalificado(canal) ? 'bg-green-50 border-green-300 opacity-60' : 'bg-white border-gray-200'"
+                        class="w-full p-4 rounded-xl border-2 flex justify-between items-center shadow-sm active:scale-95 transition">
+                        <span class="font-bold text-gray-700">{{ canal }}</span>
+                        <span v-if="yaCalificado(canal)" class="text-green-600 font-bold">✓ EVALUADO</span>
+                        <span v-else class="text-blue-500 font-bold">EVALUAR →</span>
+                    </button>
+                </div>
             </div>
-        </div>
+
+            <div v-else class="bg-blue-900 p-6 rounded-2xl text-white shadow-xl animate-in slide-in-from-bottom duration-300">
+                <h2 class="text-xl font-bold mb-4 text-blue-200 uppercase">Canal: {{ canalActivo }}</h2>
+                <div v-for="(aspecto, index) in aspectos" :key="index" class="mb-6">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-sm font-semibold">{{ aspecto }}</label>
+                        <span class="text-yellow-400 font-bold">{{ ratings[index] }}/5</span>
+                    </div>
+                    <input type="range" min="1" max="5" v-model="ratings[index]" class="w-full h-2 bg-blue-800 rounded-lg appearance-none cursor-pointer accent-yellow-400">
+                </div>
+                <div class="flex gap-3">
+                    <button @click="canalActivo = null" class="flex-1 py-3 bg-blue-800 rounded-xl font-bold">ATRÁS</button>
+                    <button @click="guardarCalificacion" class="flex-1 py-3 bg-yellow-400 text-blue-900 rounded-xl font-black">ENVIAR VOTO</button>
+                </div>
+            </div>
+        </main>
+
+        <main v-if="view === 'resultados'" class="p-6 animate-in fade-in">
+            <h2 class="text-2xl font-bold text-blue-900 mb-6">Ranking en Vivo</h2>
+            
+            <div v-if="historial.length === 0" class="text-center py-20 text-gray-400">
+                <p class="text-4xl mb-4">⏳</p>
+                <p>Esperando las primeras votaciones...</p>
+            </div>
+
+            <div v-else class="space-y-6">
+                <div v-for="res in rankingCalculado" :key="res.nombre" class="bg-gray-50 p-4 rounded-xl border-l-4 border-blue-600 shadow-sm">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="font-black text-gray-800 uppercase tracking-tight">{{ res.nombre }}</span>
+                        <span class="text-2xl font-bold text-blue-700">{{ res.promedio.toFixed(1) }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                        <div class="progress-bar bg-blue-600 h-full" :style="{ width: (res.promedio * 20) + '%' }"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-[10px] text-gray-400 font-bold uppercase">
+                        <span>Votos: {{ res.totalVotos }}</span>
+                        <span>Potencial de impacto: {{ res.promedio > 4 ? 'Alto' : 'En proceso' }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-10 p-4 bg-green-900 text-white rounded-2xl">
+                    <h3 class="text-center font-bold mb-2 uppercase text-green-300">Salud del Workshop</h3>
+                    <div class="text-4xl font-black text-center">{{ promedioGlobal }}%</div>
+                    <p class="text-center text-xs text-green-200 mt-1 uppercase">Alineación Estratégica General</p>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <script>
-        const { createApp } = Vue
-        createApp({
-            data() {
-                return {
-                    categoriaSeleccionada: null,
-                    canalActivo: null,
-                    categorias: ['Heladeras', 'Lavado', 'Cocina', 'Pequeños', 'Aire Ac.', 'Audio', 'TV', 'Celulares', 'Empotrables', 'Accesorios'],
-                    canales: ['E-commerce', 'Retail Tradicional', 'Grandes Superficies', 'B2B/Proyectos', 'Tiendas Propias', 'Distribuidores', 'Exportación'],
-                    aspectos: ['Claridad Estratégica', 'Sinergia de Cat.', 'Plan de Acción', 'Innovación'],
-                    ratings: [3, 3, 3, 3],
-                    historial: []
-                }
-            },
-            methods: {
-                guardarCalificacion() {
-                    const data = {
-                        categoria: this.categoriaSeleccionada,
-                        canal: this.canalActivo,
-                        puntajes: [...this.ratings]
-                    };
-                    this.historial.push(data);
-                    alert(`¡Calificación guardada para ${this.canalActivo}!`);
-                    this.canalActivo = null;
-                    this.ratings = [3, 3, 3, 3];
-                },
-                yaCalificado(canal) {
-                    return this.historial.some(h => h.canal === canal && h.categoria === this.categoriaSeleccionada);
-                }
-            }
-        }).mount('#app')
-    </script>
-</body>
-</html>
+    
